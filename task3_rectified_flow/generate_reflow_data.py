@@ -83,8 +83,30 @@ def main(args):
         # Use fm.sample() or manually implement the ODE integration
         # to generate z_1 from x_0
 
-        z_1 = x_0  # Replace this with actual generation
-
+        with torch.no_grad():
+            if args.use_cfg:
+                z_1, traj = fm.sample(
+                    B,
+                    args.num_inference_steps,
+                    labels,
+                    args.cfg_scale,
+                    return_traj=True,
+                )
+            else:
+                z_1, traj = fm.sample(
+                    B,
+                    args.num_inference_steps,
+                    None,
+                    1.0,
+                    return_traj=True,
+                )
+        # 從 trajectory 取得真正使用的 x_0 以確保與 z_1 完整對應
+        # traj 可能是 list[Tensor] 或 shape=(T+1, B, C, H, W) 的 Tensor
+        if isinstance(traj, (list, tuple)):
+            x_0 = traj[0].to(device)
+        else:
+            # 假設 traj 是 (T+1, B, C, H, W)
+            x_0 = traj[0].to(device)
         ######################
 
         # Save the pairs to disk
