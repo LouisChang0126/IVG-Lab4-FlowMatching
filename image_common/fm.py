@@ -208,7 +208,7 @@ class FlowMatching(nn.Module):
             # 4. Update xt for the next iteration: xt = xt_next
             dt = expand_t(t_next - t, xt)  # compute time step size
             
-            # predict velocity (with or without CFG)
+            # predict velocity
             if do_classifier_free_guidance:
                 v_cond = self.network(xt, t, class_label=class_label)
                 v_uncond = self.network(xt, t, class_label=None)
@@ -237,7 +237,7 @@ class FlowMatching(nn.Module):
         torch.save(dic, file_path)
 
     def load(self, file_path):
-        dic = torch.load(file_path, map_location="cpu")
+        dic = torch.load(file_path, map_location="cpu", weights_only=False)
         hparams = dic["hparams"]
         state_dict = dic["state_dict"]
 

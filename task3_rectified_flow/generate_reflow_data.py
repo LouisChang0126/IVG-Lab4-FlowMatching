@@ -85,28 +85,24 @@ def main(args):
 
         with torch.no_grad():
             if args.use_cfg:
-                z_1, traj = fm.sample(
-                    B,
+                traj = fm.sample(
+                    shape,
                     args.num_inference_steps,
+                    True,
                     labels,
                     args.cfg_scale,
-                    return_traj=True,
                 )
             else:
-                z_1, traj = fm.sample(
-                    B,
+                traj = fm.sample(
+                    shape,
                     args.num_inference_steps,
+                    True,
                     None,
                     1.0,
-                    return_traj=True,
                 )
-        # 從 trajectory 取得真正使用的 x_0 以確保與 z_1 完整對應
-        # traj 可能是 list[Tensor] 或 shape=(T+1, B, C, H, W) 的 Tensor
-        if isinstance(traj, (list, tuple)):
-            x_0 = traj[0].to(device)
-        else:
-            # 假設 traj 是 (T+1, B, C, H, W)
-            x_0 = traj[0].to(device)
+        
+        x_0 = traj[0]  # initial noise at t=0
+        z_1 = traj[-1]  # final sample at t=1
         ######################
 
         # Save the pairs to disk
